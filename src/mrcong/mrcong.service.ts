@@ -118,8 +118,8 @@ export class MrcongService {
     const anotherPageData = await Promise.all(promiseList);
 
     for (let i = 0; i < anotherPageData.length; i++) {
-      const rawData = anotherPageData[i];
-      const { window: windowAnotherPage } = new JSDOM(rawData);
+      const { data: anotherRawData } = anotherPageData[i];
+      const { window: windowAnotherPage } = new JSDOM(anotherRawData);
       const imageElements = windowAnotherPage.document.querySelectorAll(
         'div.page-link + p > img',
       );

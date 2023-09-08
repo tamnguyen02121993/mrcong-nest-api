@@ -26,9 +26,5 @@ jobs:
       - name: Run testcases
         run: npm run test:cov
 
-      - uses: codecov/codecov-action@v3
-        with:
-          files: ../../coverage/clover.xml # optional
-          flags: unittests # optional
-          name: codecov-umbrella # optional
-          fail_ci_if_error: true # optional (default = false)
+      - name: Run testcases
+        uses: ArtiomTr/jest-coverage-report-action@v2

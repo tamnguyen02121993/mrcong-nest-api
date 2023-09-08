@@ -2,11 +2,13 @@ name: MrCong Actions
 on:
   push:
     branches: [master]
-  pull_request_target:
+  pull_request:
     branches: [master]
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions: write-all
+
     env:
       FE: ${{secrets.FE}}
       BE: ${{secrets.BE}}

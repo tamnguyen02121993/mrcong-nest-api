@@ -2,7 +2,7 @@ name: MrCong Actions
 on:
   push:
     branches: [master]
-  pull_request:
+  pull_request_target:
     branches: [master]
 jobs:
   test:
@@ -26,5 +26,5 @@ jobs:
       - name: Run testcases
         run: npm run test:cov
 
-      - name: Run testcases
+      - name: Coverage
         uses: ArtiomTr/jest-coverage-report-action@v2

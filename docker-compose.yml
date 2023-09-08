@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  mrcong-api:
+    build: .
+    container_name: mrcong-api
+    ports:
+      - 3000:3000
+    environment:
+      - FE=https://tamnguyen02121993-get-link-mrcong-react.vercel.app/
+      - BE=https://mrcong-nest-api.vercel.app/
+    networks:
+      - mrcong-network
+    
+networks:
+  mrcong-network:

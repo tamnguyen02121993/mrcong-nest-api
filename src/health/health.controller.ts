@@ -28,10 +28,7 @@ export class HealthController {
       () =>
         this.http.pingCheck('mrcong-ui', this.configService.get<string>('FE')),
       () =>
-        this.http.pingCheck(
-          'mrcong-api',
-          `${this.configService.get<string>('BE')}/api/check`,
-        ),
+        this.http.pingCheck('mrcong-api', this.configService.get<string>('BE')),
     ]);
   }
 }

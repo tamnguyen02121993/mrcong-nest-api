@@ -10,6 +10,7 @@ jobs:
     permissions: write-all
 
     env:
+      HOST: ${{secrets.HOST}}
       FE: ${{secrets.FE}}
       BE: ${{secrets.BE}}
 

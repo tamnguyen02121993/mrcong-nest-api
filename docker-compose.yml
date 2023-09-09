@@ -7,8 +7,9 @@ services:
       - 3000:3000
       - 80:80
     environment:
-      - FE=https://tamnguyen02121993-get-link-mrcong-react.vercel.app/
-      - BE=https://mrcong-nest-api.vercel.app/
+      - FE=${FE}
+      - BE=${BE}
+      - HOST=${HOST}
     networks:
       - mrcong-network
     

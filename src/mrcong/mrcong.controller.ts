@@ -3,7 +3,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpException,
   Param,
   ParseIntPipe,
   Post,
@@ -13,6 +12,7 @@ import {
 import { MrcongService } from './mrcong.service';
 import { Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
+import { ConvertLinkDto } from 'src/dtos/convertLink.dto';
 
 @ApiTags('MrCong')
 @Controller('mrcong')
@@ -71,9 +71,9 @@ export class MrcongController {
   }
 
   @Post('/convert-link')
-  async convertOuoLink(@Body('url') url: string, @Res() res: Response) {
+  async convertOuoLink(@Body() convertLinkDto: ConvertLinkDto, @Res() res: Response) {
     try {
-      const result = await this.mrcongService.convertLink(url);
+      const result = await this.mrcongService.convertLink(convertLinkDto.url);
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
       res.status(200).json(result);

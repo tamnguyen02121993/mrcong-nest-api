@@ -12,7 +12,7 @@ import {
 import { MrcongService } from './mrcong.service';
 import { Response } from 'express';
 import { ApiTags } from '@nestjs/swagger';
-import { ConvertLinkDto } from 'src/dtos/convertLink.dto';
+import { ConvertLinkDto } from '../dtos/convertLink.dto';
 
 @ApiTags('MrCong')
 @Controller('mrcong')

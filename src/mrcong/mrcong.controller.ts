@@ -1,10 +1,12 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   HttpException,
   Param,
   ParseIntPipe,
+  Post,
   Query,
   Res,
 } from '@nestjs/common';
@@ -15,7 +17,7 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('MrCong')
 @Controller('mrcong')
 export class MrcongController {
-  constructor(private mrcongService: MrcongService) {}
+  constructor(private mrcongService: MrcongService) { }
   @Get('/categories')
   async getCategories(@Res() res: Response) {
     try {
@@ -60,6 +62,21 @@ export class MrcongController {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
       res.status(200).json(itemDetail);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
+  @Post('/convert-link')
+  async convertOuoLink(@Body('url') url: string, @Res() res: Response) {
+    try {
+      const result = await this.mrcongService.convertLink(url);
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.status(200).json(result);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
         cause: new Error(),

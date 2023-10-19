@@ -8,7 +8,7 @@ export class MrcongService {
   constructor(
     private httpService: HttpService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async getCategories() {
     const { data: rawData } = await this.httpService.axiosRef.get<string>(
@@ -147,10 +147,23 @@ export class MrcongService {
       return `${infoValid[i]} ${x.data}`;
     });
 
+    const ouoLink = downloadLink.getAttribute('href')
+    const result = await this.convertLink(ouoLink)
     return {
-      downloadLink: downloadLink.getAttribute('href'),
+      downloadLink: result.convertedLink,
       imageList,
       info: infoData,
     };
+  }
+
+  async convertLink(url: string) {
+    const { data } = await this.httpService.axiosRef.post(this.configService.get<string>('CONVERT_LINK_URL'), {
+      url
+    });
+
+    return {
+      originalLink: data.original_link,
+      convertedLink: data.converted_link
+    }
   }
 }

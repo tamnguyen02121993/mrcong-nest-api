@@ -8,16 +8,19 @@ import {
   Post,
   Query,
   Res,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 import { MrcongService } from './mrcong.service';
 import { Response } from 'express';
-import { ApiTags } from '@nestjs/swagger';
 import { ConvertLinkDto } from '../dtos/convertLink.dto';
+import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('MrCong')
 @Controller('mrcong')
 export class MrcongController {
-  constructor(private mrcongService: MrcongService) { }
+  constructor(private mrcongService: MrcongService) {}
   @Get('/categories')
   async getCategories(@Res() res: Response) {
     try {
@@ -71,12 +74,88 @@ export class MrcongController {
   }
 
   @Post('/convert-link')
-  async convertOuoLink(@Body() convertLinkDto: ConvertLinkDto, @Res() res: Response) {
+  async convertOuoLink(
+    @Body() convertLinkDto: ConvertLinkDto,
+    @Res() res: Response,
+  ) {
     try {
       const result = await this.mrcongService.convertLink(convertLinkDto.url);
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
       res.status(200).json(result);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
+  @Get('/getJson')
+  async getJsonData(
+    @Query('category') category: string,
+    @Query('start', ParseIntPipe) start: number,
+    @Query('end', ParseIntPipe) end: number,
+    @Res() res: Response,
+  ) {
+    try {
+      const data = await this.mrcongService.getJsonData(category, start, end);
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=${category}-${start}-${end}.json`,
+      );
+      res.send(data);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
+  @Get('/getMaxOfCategory')
+  async getMaxOfCategory(@Query('category') category: string) {
+    try {
+      const data = await this.mrcongService.getMaxOfCategory(category);
+      return data;
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
+  @Post('/mergeJsonData')
+  @UseInterceptors(FilesInterceptor('files'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
+  async mergeJsonData(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Res() res: Response,
+  ) {
+    try {
+      const data = await this.mrcongService.mergeJsonData(files);
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=merged-json-data.json`,
+      );
+      res.send(data);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
         cause: new Error(),

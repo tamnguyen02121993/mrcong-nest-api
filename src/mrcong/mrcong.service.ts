@@ -2,13 +2,16 @@ import { JSDOM } from 'jsdom';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { writeFile, readFile } from 'fs/promises';
+import { Readable } from 'stream';
+import { join } from 'path';
 
 @Injectable()
 export class MrcongService {
   constructor(
     private httpService: HttpService,
     private configService: ConfigService,
-  ) { }
+  ) {}
 
   async getCategories() {
     const { data: rawData } = await this.httpService.axiosRef.get<string>(
@@ -81,19 +84,31 @@ export class MrcongService {
     return links;
   }
 
-  async getItemDetail(link: string) {
+  async getItemDetail(link: string, internal: boolean = false) {
     // First page
-    const { data: rawData } = await this.httpService.axiosRef.get(link, {
-      responseType: 'text',
-    });
+    let finalRawData;
+    const { data: rawData, request } = await this.httpService.axiosRef.get(
+      link,
+      {
+        responseType: 'text',
+      },
+    );
+    finalRawData = rawData;
+    if (internal) {
+      link = request.res.responseUrl;
+      const { data: xdata } = await this.httpService.axiosRef.get(link, {
+        responseType: 'text',
+      });
+      finalRawData = xdata;
+    }
 
-    const { window } = new JSDOM(rawData);
+    const { window } = new JSDOM(finalRawData);
     const downloadLink = window.document.querySelector('div.box.info + p > a');
     const totalPageElements = window.document.querySelectorAll(
       '.page-link > .post-page-numbers',
     );
     const imagesFirstPageElements = window.document.querySelectorAll(
-      'div.box.info + p + p > img',
+      'div.post-inner > div.entry > p > img.aligncenter',
     );
     const imageList = [];
 
@@ -147,23 +162,157 @@ export class MrcongService {
       return `${infoValid[i]} ${x.data}`;
     });
 
-    const ouoLink = downloadLink.getAttribute('href')
-    const result = await this.convertLink(ouoLink)
+    const ouoLink = downloadLink.getAttribute('href');
+    const result = await this.convertLink(ouoLink);
     return {
-      downloadLink: result.convertedLink,
+      link,
+      downloadLink: downloadLink.getAttribute('href'),
       imageList,
       info: infoData,
     };
   }
 
   async convertLink(url: string) {
-    const { data } = await this.httpService.axiosRef.post(this.configService.get<string>('CONVERT_LINK_URL'), {
-      url
-    });
+    const { data } = await this.httpService.axiosRef.post(
+      this.configService.get<string>('CONVERT_LINK_URL'),
+      {
+        url,
+      },
+    );
 
     return {
       originalLink: data.original_link,
-      convertedLink: data.converted_link
+      convertedLink: data.converted_link,
+    };
+  }
+
+  async getJsonData(category: string, start: number, end: number) {
+    let defaultCategory = category;
+    if (end <= start) return [];
+    if (!category) {
+      defaultCategory = 'xiuren';
     }
+
+    const numberOrders = { xiuren: 'xiuren', ishow: 'ishow' };
+    const vols = {
+      feilin: 'feilin',
+      mfstar: 'mfstar',
+      imiss: 'imiss',
+      mygirl: 'mygirl',
+      youmi: 'youmi',
+      huayang: 'huayang',
+      xiaoyu: 'xiaoyu',
+      creamsoda: 'creamsoda-mimmi',
+      'pure-media': 'pure-media',
+    };
+
+    const categoryMapping =
+      numberOrders[defaultCategory] ?? vols[defaultCategory];
+    let subPath = numberOrders[defaultCategory]
+      ? 'no'
+      : vols[defaultCategory]
+      ? 'vol'
+      : null;
+    if (!subPath) return [];
+    const data = [];
+    for (let i = start; i <= end; i++) {
+      const link = `${this.configService.get<string>(
+        'HOST',
+      )}/${categoryMapping}-${subPath}-${i}`;
+      try {
+        const itemData = await this.getItemDetail(link, true);
+        const infoData = itemData.info.map((x) => x.split(':')[1].trim());
+        data.push({
+          link: itemData.link,
+          shortLink: link,
+          downloadLink: itemData.downloadLink,
+          category: defaultCategory,
+          info: {
+            galleryName: infoData[0],
+            modelName: infoData[1],
+            totalImages: infoData[2],
+            size: infoData[3],
+            imageDimension: infoData[4],
+          },
+          images: itemData.imageList,
+        });
+      } catch (error) {
+        data.push({
+          link: '',
+          shortLink: link,
+          downloadLink: '',
+          category: defaultCategory,
+          info: {
+            galleryName: '',
+            modelName: '',
+            totalImages: '',
+            size: '',
+            imageDimension: '',
+          },
+          images: [],
+        });
+      }
+    }
+
+    return data;
+  }
+
+  async getMaxOfCategory(category: string) {
+    let defaultCategory = category;
+    if (!category) {
+      defaultCategory = 'xiuren';
+    }
+
+    const links = await this.getItemsByPageNumber(defaultCategory, 1);
+    const numberOrders = { xiuren: 'xiuren', ishow: 'ishow' };
+    const vols = {
+      feilin: 'feilin',
+      mfstar: 'mfstar',
+      imiss: 'imiss',
+      mygirl: 'mygirl',
+      youmi: 'youmi',
+      huayang: 'huayang',
+      xiaoyu: 'xiaoyu',
+      creamsoda: 'creamsoda-mimmi',
+      'pure-media': 'pure-media',
+    };
+    const categoryMapping =
+      numberOrders[defaultCategory] ?? vols[defaultCategory];
+    let subPath = numberOrders[defaultCategory]
+      ? 'no'
+      : vols[defaultCategory]
+      ? 'vol'
+      : null;
+    if (!subPath) return [];
+    const ids = links.map(
+      (x) =>
+        +x.href
+          .replace(
+            `${this.configService.get<string>(
+              'HOST',
+            )}/${categoryMapping}-${subPath}-`,
+            '',
+          )
+          .split('-')[0],
+    );
+
+    return Math.max(...ids.filter((x) => !isNaN(x)));
+  }
+
+  async mergeJsonData(jsonFiles: Express.Multer.File[]) {
+    const mergedData = [];
+    for (let index = 0; index < jsonFiles.length; index++) {
+      const fileBuffer = Buffer.from(jsonFiles[index].buffer);
+      const fileStream = Readable.from(fileBuffer);
+      const path = join(process.cwd(), `temp${index}.json`);
+      await writeFile(`./temp${index}.json`, fileStream);
+      const dataString = await readFile(path, {
+        encoding: 'utf-8',
+      });
+      const data = JSON.parse(dataString);
+      mergedData.push(data);
+    }
+
+    return mergedData;
   }
 }

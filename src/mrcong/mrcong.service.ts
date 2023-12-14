@@ -166,7 +166,7 @@ export class MrcongService {
     const result = await this.convertLink(ouoLink);
     return {
       link,
-      downloadLink: downloadLink.getAttribute('href'),
+      downloadLink: result,
       imageList,
       info: infoData,
     };

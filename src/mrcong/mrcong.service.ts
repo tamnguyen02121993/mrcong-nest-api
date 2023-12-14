@@ -162,6 +162,8 @@ export class MrcongService {
       return `${infoValid[i]} ${x.data}`;
     });
 
+    const passwordElement = infoElement.querySelector('input');
+    infoData.push(`Password Unrar: ${passwordElement.value}`);
     const ouoLink = downloadLink.getAttribute('href');
     const result = await this.convertLink(ouoLink);
     return {

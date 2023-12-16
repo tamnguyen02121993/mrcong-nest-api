@@ -85,7 +85,9 @@ export class MrcongService {
       const item = items[index];
       const image = images[index];
       const tagElements = window.document.querySelectorAll(
-        'div.post-listing.archive-box > article.item-list > .post-meta > .post-cats > a',
+        `div.post-listing.archive-box > article.item-list:nth-child(${
+          index + 1
+        }) > .post-meta > .post-cats > a`,
       );
       links.push({
         title: item.textContent,
@@ -404,7 +406,9 @@ export class MrcongService {
       const item = items[index];
       const image = images[index];
       const tagElements = window.document.querySelectorAll(
-        'div.post-listing.archive-box > article.item-list > .post-meta > .post-cats > a',
+        `div.post-listing.archive-box > article.item-list:nth-child(${
+          index + 1
+        }) > .post-meta > .post-cats > a`,
       );
       links.push({
         title: item.textContent,

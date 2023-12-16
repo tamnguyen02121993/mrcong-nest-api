@@ -164,8 +164,20 @@ export class MrcongService {
 
     const passwordElement = infoElement.querySelector('input');
     infoData.push(`Password Unrar: ${passwordElement.value}`);
-    const ouoLink = downloadLink.getAttribute('href');
-    const result = await this.convertLink(ouoLink);
+    const href = downloadLink.getAttribute('href');
+    let result = { originalLink: '', convertedLink: '' };
+    if (
+      href.startsWith('https://ouo.io') ||
+      href.startsWith('https://ouo.press')
+    ) {
+      result = await this.convertLink(href);
+    } else {
+      result = {
+        originalLink: href,
+        convertedLink: href,
+      };
+    }
+
     return {
       link,
       downloadLink: result,

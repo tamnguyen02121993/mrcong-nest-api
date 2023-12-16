@@ -421,12 +421,10 @@ export class MrcongService {
 
   async getJsonData(): Promise<ItemDetailJsonResponse[]> {
     const items: ItemResponse[] = [];
-    // for (let index = 1; index <= 5; index++) {
-    //   const itemsInPage = await this.getItemsByPageNumber(index);
-    //   items.push(...itemsInPage);
-    // }
-    const itemsInPage = await this.getItemsByPageNumber(1);
-    items.push(...itemsInPage);
+    for (let index = 1; index <= 5; index++) {
+      const itemsInPage = await this.getItemsByPageNumber(index);
+      items.push(...itemsInPage);
+    }
     const data: ItemDetailJsonResponse[] = [];
     for (let i = 0; i < items.length; i++) {
       const link = items[i].href;

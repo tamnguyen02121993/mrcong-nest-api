@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { MrcongService } from './mrcong.service';
 import { Response } from 'express';
-import { ConvertLinkDto } from '../dtos/convertLink.dto';
+import { ConvertLinkRequest } from '../models/requests';
 import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
@@ -37,13 +37,13 @@ export class MrcongController {
   }
 
   @Get('/category/:category/page/:page')
-  async getItemsByPageNumber(
+  async getItemsByCategoryAndPageNumber(
     @Param('category') category: string,
     @Param('page', ParseIntPipe) page: number,
     @Res() res: Response,
   ) {
     try {
-      const items = await this.mrcongService.getItemsByPageNumber(
+      const items = await this.mrcongService.getItemsByCategoryAndPageNumber(
         category,
         page,
       );
@@ -75,11 +75,13 @@ export class MrcongController {
 
   @Post('/convert-link')
   async convertOuoLink(
-    @Body() convertLinkDto: ConvertLinkDto,
+    @Body() convertLinkRequest: ConvertLinkRequest,
     @Res() res: Response,
   ) {
     try {
-      const result = await this.mrcongService.convertLink(convertLinkDto.url);
+      const result = await this.mrcongService.convertLink(
+        convertLinkRequest.url,
+      );
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
       res.status(200).json(result);
@@ -91,19 +93,23 @@ export class MrcongController {
     }
   }
 
-  @Get('/getJson')
-  async getJsonData(
+  @Get('/get-json-by-category')
+  async getJsonDataByCategory(
     @Query('category') category: string,
     @Query('start', ParseIntPipe) start: number,
     @Query('end', ParseIntPipe) end: number,
     @Res() res: Response,
   ) {
     try {
-      const data = await this.mrcongService.getJsonData(category, start, end);
+      const data = await this.mrcongService.getJsonDataByCategory(
+        category,
+        start,
+        end,
+      );
       res.setHeader('Content-Type', 'application/json');
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename=${category}-${start}-${end}.json`,
+        `attachment; filename=mrcong-data-${category}-${start}-${end}.json`,
       );
       res.send(data);
     } catch (error) {
@@ -154,6 +160,42 @@ export class MrcongController {
       res.setHeader(
         'Content-Disposition',
         `attachment; filename=merged-json-data.json`,
+      );
+      res.send(data);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
+  @Get('/page/:page')
+  async getItemsByPageNumber(
+    @Param('page', ParseIntPipe) page: number,
+    @Res() res: Response,
+  ) {
+    try {
+      const items = await this.mrcongService.getItemsByPageNumber(page);
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.status(200).json(items);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
+  @Get('/get-json')
+  async getJsonData(@Res() res: Response) {
+    try {
+      const data = await this.mrcongService.getJsonData();
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=mrcong-data.json`,
       );
       res.send(data);
     } catch (error) {

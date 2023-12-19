@@ -11,9 +11,11 @@ import {
   ItemDetailJsonResponse,
   ItemDetailResponse,
   ItemResponse,
+  ItemsWithTrendingResponse,
+  RelatedItemResponse,
   TagResponse,
+  TrendingItemResponse,
 } from '../models/responses';
-import { DOMWindow } from 'jsdom';
 
 @Injectable()
 export class MrcongService {
@@ -52,7 +54,7 @@ export class MrcongService {
   async getItemsByCategoryAndPageNumber(
     category: string,
     pageNumber: number,
-  ): Promise<ItemResponse[]> {
+  ): Promise<ItemsWithTrendingResponse> {
     if (pageNumber > 100 || pageNumber < 1) {
       pageNumber = 1;
     }
@@ -70,11 +72,12 @@ export class MrcongService {
     );
 
     const { window } = new JSDOM(rawData);
-    const items = window.document.querySelectorAll(
+    const document = window.document;
+    const items = document.querySelectorAll(
       'div.post-listing.archive-box > article.item-list > .post-box-title > a',
     );
 
-    const images = window.document.querySelectorAll(
+    const images = document.querySelectorAll(
       'div.post-listing.archive-box > article.item-list > .post-thumbnail > a > img',
     );
 
@@ -84,7 +87,7 @@ export class MrcongService {
     for (let index = 0; index < itemsLength; index++) {
       const item = items[index];
       const image = images[index];
-      const tagElements = window.document.querySelectorAll(
+      const tagElements = document.querySelectorAll(
         `div.post-listing.archive-box > article.item-list:nth-child(${
           index + 1
         }) > .post-meta > .post-cats > a`,
@@ -95,11 +98,14 @@ export class MrcongService {
         coverImage: image.getAttribute('src'),
         page: pageNumber,
         category: defaultCategory,
-        tags: this.getTags(tagElements),
+        tags: this._getTags(tagElements),
       });
     }
 
-    return links;
+    return {
+      items: links,
+      trending: this._getTrendingItems(window.document),
+    };
   }
 
   async getItemDetail(
@@ -124,11 +130,12 @@ export class MrcongService {
     }
 
     const { window } = new JSDOM(finalRawData);
-    const downloadLink = window.document.querySelector('div.box.info + p > a');
-    const totalPageElements = window.document.querySelectorAll(
+    const document = window.document;
+    const downloadLink = document.querySelector('div.box.info + p > a');
+    const totalPageElements = document.querySelectorAll(
       '.page-link > .post-page-numbers',
     );
-    const imagesFirstPageElements = window.document.querySelectorAll(
+    const imagesFirstPageElements = document.querySelectorAll(
       'div.post-inner > div.entry > p > img.aligncenter',
     );
     const imageList = [];
@@ -163,17 +170,9 @@ export class MrcongService {
         imageList.push(imageElements[index].getAttribute('src'));
       }
     }
-
-    const infoValid = [
-      'Gallery Name:',
-      'Model Name:',
-      'Total Images:',
-      'Size:',
-      'Image Dimension:',
-    ];
     const invalidText = ['\n', ' '];
     const validIndex = 1;
-    const infoElement = window.document.querySelector('.box-inner-block');
+    const infoElement = document.querySelector('.box-inner-block');
     let filterInfo = [...infoElement.childNodes].filter((n: Text) => {
       return (
         (n.nodeName === '#text' && !invalidText.includes(n.data)) ||
@@ -191,7 +190,8 @@ export class MrcongService {
       }
     });
     const infoData = [];
-    for (let index = 0; index < infoArr.length; index += 2) {
+    const infoArrLength = infoArr.length;
+    for (let index = 0; index < infoArrLength; index += 2) {
       infoData.push(`${infoArr[index]} ${infoArr[index + 1]}`);
     }
 
@@ -211,7 +211,7 @@ export class MrcongService {
       };
     }
 
-    const tagElements = window.document.querySelectorAll(
+    const tagElements = document.querySelectorAll(
       '.post-inner > .post-tag > a',
     );
 
@@ -219,7 +219,7 @@ export class MrcongService {
       link,
       downloadLink: result,
       info: infoData,
-      tags: this.getTags(tagElements),
+      tags: this._getTags(tagElements),
       imageList,
     } as ItemDetailResponse;
   }
@@ -321,7 +321,7 @@ export class MrcongService {
       defaultCategory = 'xiuren';
     }
 
-    const links = await this.getItemsByCategoryAndPageNumber(
+    const { items: links } = await this.getItemsByCategoryAndPageNumber(
       defaultCategory,
       1,
     );
@@ -379,7 +379,9 @@ export class MrcongService {
     return mergedData;
   }
 
-  async getItemsByPageNumber(pageNumber: number): Promise<ItemResponse[]> {
+  async getItemsByPageNumber(
+    pageNumber: number,
+  ): Promise<ItemsWithTrendingResponse> {
     if (pageNumber > 100 || pageNumber < 1) {
       pageNumber = 1;
     }
@@ -391,11 +393,12 @@ export class MrcongService {
     );
 
     const { window } = new JSDOM(rawData);
-    const items = window.document.querySelectorAll(
+    const document = window.document;
+    const items = document.querySelectorAll(
       'div.post-listing.archive-box > article.item-list > .post-box-title > a',
     );
 
-    const images = window.document.querySelectorAll(
+    const images = document.querySelectorAll(
       'div.post-listing.archive-box > article.item-list > .post-thumbnail > a > img',
     );
 
@@ -405,7 +408,7 @@ export class MrcongService {
     for (let index = 0; index < itemsLength; index++) {
       const item = items[index];
       const image = images[index];
-      const tagElements = window.document.querySelectorAll(
+      const tagElements = document.querySelectorAll(
         `div.post-listing.archive-box > article.item-list:nth-child(${
           index + 1
         }) > .post-meta > .post-cats > a`,
@@ -416,21 +419,25 @@ export class MrcongService {
         coverImage: image.getAttribute('src'),
         page: pageNumber,
         category: 'ALL',
-        tags: this.getTags(tagElements),
+        tags: this._getTags(tagElements),
       });
     }
 
-    return links;
+    return {
+      items: links,
+      trending: this._getTrendingItems(window.document),
+    };
   }
 
   async getJsonData(): Promise<ItemDetailJsonResponse[]> {
     const items: ItemResponse[] = [];
     for (let index = 1; index <= 5; index++) {
-      const itemsInPage = await this.getItemsByPageNumber(index);
+      const { items: itemsInPage } = await this.getItemsByPageNumber(index);
       items.push(...itemsInPage);
     }
     const data: ItemDetailJsonResponse[] = [];
-    for (let i = 0; i < items.length; i++) {
+    const itemsLength = items.length;
+    for (let i = 0; i < itemsLength; i++) {
       const link = items[i].href;
       try {
         const itemData = await this.getItemDetail(link, true);
@@ -472,9 +479,10 @@ export class MrcongService {
     return data;
   }
 
-  getTags(tagElements: NodeListOf<Element>): TagResponse[] {
+  _getTags(tagElements: NodeListOf<Element>): TagResponse[] {
     const tags = [];
-    for (let i = 0; i < tagElements.length; i++) {
+    const tagElementsLength = tagElements.length;
+    for (let i = 0; i < tagElementsLength; i++) {
       tags.push({
         tagHref: tagElements[i].getAttribute('href'),
         tagName: tagElements[i].textContent,
@@ -482,5 +490,124 @@ export class MrcongService {
     }
 
     return tags;
+  }
+
+  async getItemsByTagNameAndPageNumber(
+    tag: string,
+    pageNumber: number,
+  ): Promise<ItemsWithTrendingResponse> {
+    if (pageNumber > 100 || pageNumber < 1) {
+      pageNumber = 1;
+    }
+    const { data: rawData } = await this.httpService.axiosRef.get(
+      `${this.configService.get<string>('HOST')}/tag/${tag}/page/${pageNumber}`,
+      {
+        responseType: 'text',
+      },
+    );
+
+    const { window } = new JSDOM(rawData);
+    const document = window.document;
+    const items = document.querySelectorAll(
+      'div.post-listing.archive-box > article.item-list > .post-box-title > a',
+    );
+
+    const images = document.querySelectorAll(
+      'div.post-listing.archive-box > article.item-list > .post-thumbnail > a > img',
+    );
+
+    const itemsLength = items.length;
+    const links: ItemResponse[] = [];
+
+    for (let index = 0; index < itemsLength; index++) {
+      const item = items[index];
+      const image = images[index];
+      const tagElements = document.querySelectorAll(
+        `div.post-listing.archive-box > article.item-list:nth-child(${
+          index + 1
+        }) > .post-meta > .post-cats > a`,
+      );
+      links.push({
+        title: item.textContent,
+        href: item.getAttribute('href'),
+        coverImage: image.getAttribute('src'),
+        page: pageNumber,
+        category: 'ALL',
+        tags: this._getTags(tagElements),
+      });
+    }
+
+    return {
+      items: links,
+      trending: this._getTrendingItems(document),
+    };
+  }
+
+  async getRelatedItems(link: string): Promise<RelatedItemResponse[]> {
+    // First page
+    const { data } = await this.httpService.axiosRef.get(
+      `${link}/?relatedposts=1`,
+    );
+    const relatedItems: RelatedItemResponse[] = data.items.map((x) => {
+      return {
+        id: x.id,
+        url: x.url,
+        urlMetadata: {
+          origin: x.url_meta.origin,
+          position: x.url_meta.position,
+        },
+        title: x.title,
+        author: x.author,
+        date: x.date,
+        context: x.context,
+        blockContext: {
+          text: x.block_context.text,
+          link: x.block_context.link,
+        },
+        img: {
+          alt: x.img.alt_text,
+          src: x.img.src,
+          width: x.img.width,
+          height: x.img.height,
+          srcset: x.img.srcset,
+        },
+      } as RelatedItemResponse;
+    });
+
+    return relatedItems;
+  }
+
+  _getTrendingItems(document: Document): TrendingItemResponse[] {
+    const trendingElements = document.querySelectorAll(
+      '.widget-container > .widgets-grid-layout > .widget-grid-view-image',
+    );
+    const trendingItems: TrendingItemResponse[] = [];
+    const trendingItemsLength = trendingElements.length;
+    for (let i = 0; i < trendingItemsLength; i++) {
+      const aElement = trendingElements[i].querySelector('a');
+      const imgElement = aElement.querySelector('img');
+      trendingItems.push({
+        href: aElement.getAttribute('href'),
+        title: aElement.getAttribute('title'),
+        img: {
+          src: imgElement.getAttribute('src'),
+          srcSet: imgElement.getAttribute('srcset'),
+        },
+      });
+    }
+    return trendingItems;
+  }
+
+  async getTrendingItemsUsingQuery(): Promise<TrendingItemResponse[]> {
+    const { data: rawData } = await this.httpService.axiosRef.get(
+      `${this.configService.get<string>('HOST')}`,
+      {
+        responseType: 'text',
+      },
+    );
+
+    const { window } = new JSDOM(rawData);
+    const document = window.document;
+    return this._getTrendingItems(document);
   }
 }

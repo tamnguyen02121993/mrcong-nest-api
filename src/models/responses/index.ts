@@ -18,6 +18,44 @@ export class ItemResponse {
   tags: TagResponse[];
 }
 
+export class ItemsWithTrendingResponse {
+  items: ItemResponse[];
+  trending: TrendingItemResponse[];
+}
+
+export class TrendingItemResponse {
+  title: string;
+  href: string;
+  img: {
+    src: string;
+    srcSet: string;
+  };
+}
+
+export class RelatedItemResponse {
+  id: number;
+  url: string;
+  urlMetadata: {
+    origin: number;
+    position: number;
+  };
+  title: string;
+  author: string;
+  date: string;
+  context: string;
+  blockContext: {
+    text: string;
+    link: string;
+  };
+  img: {
+    alt: string;
+    src: string;
+    width: number;
+    height: number;
+    srcset: string;
+  };
+}
+
 export class ConvertLinkResponse {
   originalLink: string;
   convertedLink: string;

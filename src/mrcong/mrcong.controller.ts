@@ -73,6 +73,36 @@ export class MrcongController {
     }
   }
 
+  @Get('/related')
+  async getRelatedItems(@Query('link') link: string, @Res() res: Response) {
+    try {
+      const itemDetail = await this.mrcongService.getRelatedItems(link);
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.status(200).json(itemDetail);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
+  @Get('/trending')
+  async getTrendingItems(@Res() res: Response) {
+    try {
+      const itemDetail = await this.mrcongService.getTrendingItemsUsingQuery();
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.status(200).json(itemDetail);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
   @Post('/convert-link')
   async convertOuoLink(
     @Body() convertLinkRequest: ConvertLinkRequest,
@@ -198,6 +228,28 @@ export class MrcongController {
         `attachment; filename=mrcong-data.json`,
       );
       res.send(data);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
+  @Get('/tag/:tag/page/:page')
+  async getItemsByTagNameAndPageNumber(
+    @Param('tag') tag: string,
+    @Param('page', ParseIntPipe) page: number,
+    @Res() res: Response,
+  ) {
+    try {
+      const items = await this.mrcongService.getItemsByTagNameAndPageNumber(
+        tag,
+        page,
+      );
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.status(200).json(items);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
         cause: new Error(),

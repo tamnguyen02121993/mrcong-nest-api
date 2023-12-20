@@ -267,8 +267,8 @@ export class MrcongService {
     let subPath = numberOrders[defaultCategory]
       ? 'no'
       : vols[defaultCategory]
-      ? 'vol'
-      : null;
+        ? 'vol'
+        : null;
     if (!subPath) return [];
     const data: ItemDetailJsonResponse[] = [];
     for (let i = start; i <= end; i++) {
@@ -342,8 +342,8 @@ export class MrcongService {
     let subPath = numberOrders[defaultCategory]
       ? 'no'
       : vols[defaultCategory]
-      ? 'vol'
-      : null;
+        ? 'vol'
+        : null;
     if (!subPath) return 0;
     const ids = links.map(
       (x) =>
@@ -569,7 +569,7 @@ export class MrcongService {
           src: x.img.src,
           width: x.img.width,
           height: x.img.height,
-          srcset: x.img.srcset,
+          srcSet: x.img.srcset,
         },
       } as RelatedItemResponse;
     });

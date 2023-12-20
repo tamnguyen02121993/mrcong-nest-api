@@ -52,7 +52,7 @@ export class RelatedItemResponse {
     src: string;
     width: number;
     height: number;
-    srcset: string;
+    srcSet: string;
   };
 }
 

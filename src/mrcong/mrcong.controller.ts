@@ -16,7 +16,7 @@ import { Response } from 'express';
 import { ConvertLinkRequest } from '../models/requests';
 import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
-
+const MAX_AGE = 31536000; // Cache one year
 @ApiTags('MrCong')
 @Controller('mrcong')
 export class MrcongController {
@@ -26,7 +26,10 @@ export class MrcongController {
     try {
       const categories = await this.mrcongService.getCategories();
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
       res.status(200).json(categories);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
@@ -48,7 +51,10 @@ export class MrcongController {
         page,
       );
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
       res.status(200).json(items);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
@@ -63,7 +69,10 @@ export class MrcongController {
     try {
       const itemDetail = await this.mrcongService.getItemDetail(link);
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
       res.status(200).json(itemDetail);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
@@ -78,7 +87,10 @@ export class MrcongController {
     try {
       const itemDetail = await this.mrcongService.getRelatedItems(link);
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
       res.status(200).json(itemDetail);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
@@ -93,7 +105,10 @@ export class MrcongController {
     try {
       const itemDetail = await this.mrcongService.getTrendingItemsUsingQuery();
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
       res.status(200).json(itemDetail);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
@@ -113,7 +128,10 @@ export class MrcongController {
         convertLinkRequest.url,
       );
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
       res.status(200).json(result);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
@@ -208,7 +226,10 @@ export class MrcongController {
     try {
       const items = await this.mrcongService.getItemsByPageNumber(page);
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
       res.status(200).json(items);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {
@@ -248,7 +269,10 @@ export class MrcongController {
         page,
       );
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Cache-Control', 's-max-age=60, stale-while-revalidate');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
       res.status(200).json(items);
     } catch (error) {
       throw new BadRequestException('Something bad happened', {

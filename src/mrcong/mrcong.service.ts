@@ -179,7 +179,7 @@ export class MrcongService {
         n.nodeName === 'STRONG'
       );
     });
-    filterInfo = filterInfo.slice(validIndex, filterInfo.length - 6);
+    filterInfo = filterInfo.slice(validIndex, filterInfo.length - 5);
     const infoArr = filterInfo.map((x: Text | HTMLElement, i) => {
       if (x.nodeName === '#text') {
         return (x as Text).data;

@@ -85,12 +85,13 @@ export class MrcongService {
     const links: ItemResponse[] = [];
 
     for (let index = 0; index < itemsLength; index++) {
+      // Ignore index === 12 because it is iframe advertisement
+      // So I will add 2 from index + 1 >= 12 to re-caculate index
+      const tagIndex = index + 1 >= 12 ? index + 2 : index + 1;
       const item = items[index];
       const image = images[index];
       const tagElements = document.querySelectorAll(
-        `div.post-listing.archive-box > article.item-list:nth-child(${
-          index + 1
-        }) > .post-meta > .post-cats > a`,
+        `div.post-listing.archive-box > article.item-list:nth-child(${tagIndex}) > .post-meta > .post-cats > a`,
       );
       links.push({
         title: item.textContent,
@@ -406,12 +407,13 @@ export class MrcongService {
     const links: ItemResponse[] = [];
 
     for (let index = 0; index < itemsLength; index++) {
+      // Ignore index === 12 because it is iframe advertisement
+      // So I will add 2 from index + 1 >= 12 to re-caculate index
+      const tagIndex = index + 1 >= 12 ? index + 2 : index + 1;
       const item = items[index];
       const image = images[index];
       const tagElements = document.querySelectorAll(
-        `div.post-listing.archive-box > article.item-list:nth-child(${
-          index + 1
-        }) > .post-meta > .post-cats > a`,
+        `div.post-listing.archive-box > article.item-list:nth-child(${tagIndex}) > .post-meta > .post-cats > a`,
       );
       links.push({
         title: item.textContent,
@@ -520,12 +522,13 @@ export class MrcongService {
     const links: ItemResponse[] = [];
 
     for (let index = 0; index < itemsLength; index++) {
+      // Ignore index === 12 because it is iframe advertisement
+      // So I will add 2 from index + 1 >= 12 to re-caculate index
+      const tagIndex = index + 1 >= 12 ? index + 2 : index + 1;
       const item = items[index];
       const image = images[index];
       const tagElements = document.querySelectorAll(
-        `div.post-listing.archive-box > article.item-list:nth-child(${
-          index + 1
-        }) > .post-meta > .post-cats > a`,
+        `div.post-listing.archive-box > article.item-list:nth-child(${tagIndex}) > .post-meta > .post-cats > a`,
       );
       links.push({
         title: item.textContent,

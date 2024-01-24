@@ -14,9 +14,12 @@ import {
 import { MrcongService } from './mrcong.service';
 import { Response } from 'express';
 import { ConvertLinkRequest } from '../models/requests';
-import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiConsumes, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 const MAX_AGE = 31536000; // Cache one year
+const DEPRECATED_MESSAGE =
+  'To avoid timeout error from real server this API should be only run on localhost.';
+
 @ApiTags('MrCong')
 @Controller('mrcong')
 export class MrcongController {
@@ -64,6 +67,7 @@ export class MrcongController {
     }
   }
 
+  @ApiOperation({ deprecated: true, description: DEPRECATED_MESSAGE })
   @Get('/detail')
   async getItemDetail(@Query('link') link: string, @Res() res: Response) {
     try {
@@ -180,6 +184,7 @@ export class MrcongController {
     }
   }
 
+  @ApiOperation({ deprecated: true, description: DEPRECATED_MESSAGE })
   @Get('/get-json-by-category')
   async getJsonDataByCategory(
     @Query('category') category: string,
@@ -220,6 +225,7 @@ export class MrcongController {
     }
   }
 
+  @ApiOperation({ deprecated: true, description: DEPRECATED_MESSAGE })
   @Post('/mergeJsonData')
   @UseInterceptors(FilesInterceptor('files'))
   @ApiConsumes('multipart/form-data')
@@ -278,6 +284,10 @@ export class MrcongController {
     }
   }
 
+  @ApiOperation({
+    deprecated: true,
+    description: DEPRECATED_MESSAGE,
+  })
   @Get('/get-json')
   async getJsonData(@Res() res: Response) {
     try {

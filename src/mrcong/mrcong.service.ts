@@ -8,6 +8,7 @@ import { join } from 'path';
 import {
   CategoryResponse,
   ConvertLinkResponse,
+  FirstItemDetailResponse,
   ItemDetailJsonResponse,
   ItemDetailResponse,
   ItemResponse,
@@ -223,6 +224,130 @@ export class MrcongService {
       tags: this._getTags(tagElements),
       imageList,
     } as ItemDetailResponse;
+  }
+
+  async getFirstItemDetail(
+    link: string,
+    internal: boolean = false,
+  ): Promise<ItemDetailResponse> {
+    // First page
+    let finalRawData;
+    const { data: rawData, request } = await this.httpService.axiosRef.get(
+      link,
+      {
+        responseType: 'text',
+      },
+    );
+    finalRawData = rawData;
+    if (internal) {
+      link = request.res.responseUrl;
+      const { data: xdata } = await this.httpService.axiosRef.get(link, {
+        responseType: 'text',
+      });
+      finalRawData = xdata;
+    }
+
+    const { window } = new JSDOM(finalRawData);
+    const document = window.document;
+    const downloadLink = document.querySelector('div.box.info + p > a');
+    const totalPageElements = document.querySelectorAll(
+      '.page-link > .post-page-numbers',
+    );
+    const imagesFirstPageElements = document.querySelectorAll(
+      'div.post-inner > div.entry > p > img.aligncenter',
+    );
+    const imageList = [];
+
+    // Get all images from first page
+    for (let index = 0; index < imagesFirstPageElements.length; index++) {
+      imageList.push(imagesFirstPageElements[index].getAttribute('src'));
+    }
+
+    const totalPages = totalPageElements.length / 2;
+
+    const invalidText = ['\n', ' '];
+    const validIndex = 1;
+    const infoElement = document.querySelector('.box-inner-block');
+    let filterInfo = [...infoElement.childNodes].filter((n: Text) => {
+      return (
+        (n.nodeName === '#text' && !invalidText.includes(n.data)) ||
+        n.nodeName === 'STRONG'
+      );
+    });
+    filterInfo = filterInfo.slice(validIndex, filterInfo.length - 5);
+    const infoArr = filterInfo.map((x: Text | HTMLElement, i) => {
+      if (x.nodeName === '#text') {
+        return (x as Text).data;
+      }
+
+      if (x.nodeName === 'STRONG') {
+        return (x as HTMLElement).textContent;
+      }
+    });
+    const infoData = [];
+    const infoArrLength = infoArr.length;
+    for (let index = 0; index < infoArrLength; index += 2) {
+      infoData.push(`${infoArr[index]} ${infoArr[index + 1]}`);
+    }
+
+    const passwordElement = infoElement.querySelector('input');
+    infoData.push(`Password Unrar: ${passwordElement.value}`);
+    const href = downloadLink.getAttribute('href');
+    let result: ConvertLinkResponse = { originalLink: '', convertedLink: '' };
+    if (
+      href.startsWith('https://ouo.io') ||
+      href.startsWith('https://ouo.press')
+    ) {
+      result = await this.convertLink(href);
+    } else {
+      result = {
+        originalLink: href,
+        convertedLink: href,
+      };
+    }
+
+    const tagElements = document.querySelectorAll(
+      '.post-inner > .post-tag > a',
+    );
+
+    return {
+      link,
+      downloadLink: result,
+      info: infoData,
+      tags: this._getTags(tagElements),
+      imageList,
+      totalPages,
+    } as FirstItemDetailResponse;
+  }
+
+  async getAnotherItemDetail(
+    link: string,
+    internal: boolean = false,
+  ): Promise<string[]> {
+    let finalRawData;
+    const { data: rawData, request } = await this.httpService.axiosRef.get(
+      link,
+      {
+        responseType: 'text',
+      },
+    );
+    finalRawData = rawData;
+    if (internal) {
+      link = request.res.responseUrl;
+      const { data: xdata } = await this.httpService.axiosRef.get(link, {
+        responseType: 'text',
+      });
+      finalRawData = xdata;
+    }
+
+    const { window } = new JSDOM(finalRawData);
+    const document = window.document;
+    const imageElements = document.querySelectorAll('div.page-link + p > img');
+    const imageList = [];
+    for (let index = 0; index < imageElements.length; index++) {
+      imageList.push(imageElements[index].getAttribute('src'));
+    }
+    return imageList;
   }
 
   async convertLink(url: string): Promise<ConvertLinkResponse> {

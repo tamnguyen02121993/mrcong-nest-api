@@ -82,6 +82,45 @@ export class MrcongController {
     }
   }
 
+  @Get('/first-detail')
+  async getFirstItemDetail(@Query('link') link: string, @Res() res: Response) {
+    try {
+      const itemDetail = await this.mrcongService.getFirstItemDetail(link);
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
+      res.status(200).json(itemDetail);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
+  @Get('/another-detail')
+  async getAnotherItemDetail(
+    @Query('link') link: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const itemDetail = await this.mrcongService.getAnotherItemDetail(link);
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader(
+        'Cache-Control',
+        `s-max-age=${MAX_AGE}, stale-while-revalidate`,
+      );
+      res.status(200).json(itemDetail);
+    } catch (error) {
+      throw new BadRequestException('Something bad happened', {
+        cause: new Error(),
+        description: error?.message || 'Something bad happened',
+      });
+    }
+  }
+
   @Get('/related')
   async getRelatedItems(@Query('link') link: string, @Res() res: Response) {
     try {

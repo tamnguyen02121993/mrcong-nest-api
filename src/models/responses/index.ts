@@ -69,6 +69,10 @@ export class ItemDetailResponse {
   tags: TagResponse[];
 }
 
+export class FirstItemDetailResponse extends ItemDetailResponse {
+  totalPages: number;
+}
+
 export class ItemDetailJsonResponse {
   link: string;
   shortLink: string;

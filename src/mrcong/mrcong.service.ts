@@ -686,6 +686,7 @@ export class MrcongService {
     const thumbnailHorizontals = document.querySelectorAll(
       'div.yarpp-thumbnails-horizontal',
     );
+    if (thumbnailHorizontals.length === 0) return [];
     const aTags = thumbnailHorizontals[0].querySelectorAll('a.yarpp-thumbnail');
     const items = [...aTags].map((x) => {
       const imgTag = x.querySelector('img.wp-post-image');

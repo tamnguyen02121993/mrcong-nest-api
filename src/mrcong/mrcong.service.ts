@@ -673,36 +673,77 @@ export class MrcongService {
 
   async getRelatedItems(link: string): Promise<RelatedItemResponse[]> {
     // First page
-    const { data } = await this.httpService.axiosRef.get(
-      `${link}/?relatedposts=1`,
+    // const { data } = await this.httpService.axiosRef.get(
+    //   `${link}/?relatedposts=1`,
+    // );
+
+    const { data: rawData } = await this.httpService.axiosRef.get(link, {
+      responseType: 'text',
+    });
+
+    const { window } = new JSDOM(rawData);
+    const document = window.document;
+    const thumbnailHorizontals = document.querySelectorAll(
+      'div.yarpp-thumbnails-horizontal',
     );
-    const relatedItems: RelatedItemResponse[] = data.items.map((x) => {
+    const aTags = thumbnailHorizontals[0].querySelectorAll('a.yarpp-thumbnail');
+    const items = [...aTags].map((x) => {
+      const imgTag = x.querySelector('img.wp-post-image');
+
       return {
-        id: x.id,
-        url: x.url,
+        id: 0,
+        url: x.getAttribute('href'),
         urlMetadata: {
-          origin: x.url_meta.origin,
-          position: x.url_meta.position,
+          origin: 0,
+          position: 0,
         },
-        title: x.title,
-        author: x.author,
-        date: x.date,
-        context: x.context,
+        title: x.getAttribute('title'),
+        author: '',
+        date: '',
+        context: '',
         blockContext: {
-          text: x.block_context.text,
-          link: x.block_context.link,
+          text: x.getAttribute('title'),
+          link: x.getAttribute('href'),
         },
         img: {
-          alt: x.img.alt_text,
-          src: x.img.src,
-          width: x.img.width,
-          height: x.img.height,
-          srcSet: x.img.srcset,
+          alt: imgTag.getAttribute('title'),
+          src: imgTag.getAttribute('src'),
+          width: +imgTag.getAttribute('width'),
+          height: +imgTag.getAttribute('height'),
+          srcSet: '',
         },
       } as RelatedItemResponse;
     });
 
-    return relatedItems;
+    return items;
+
+    // const relatedItems: RelatedItemResponse[] = items.map((x) => {
+    //   return {
+    //     id: x.id,
+    //     url: x.url,
+    //     urlMetadata: {
+    //       origin: x.url_meta.origin,
+    //       position: x.url_meta.position,
+    //     },
+    //     title: x.title,
+    //     author: x.author,
+    //     date: x.date,
+    //     context: x.context,
+    //     blockContext: {
+    //       text: x.block_context.text,
+    //       link: x.block_context.link,
+    //     },
+    //     img: {
+    //       alt: x.img.alt_text,
+    //       src: x.img.src,
+    //       width: x.img.width,
+    //       height: x.img.height,
+    //       srcSet: x.img.srcset,
+    //     },
+    //   } as RelatedItemResponse;
+    // });
+
+    // return relatedItems;
   }
 
   _getTrendingItems(document: Document): TrendingItemResponse[] {

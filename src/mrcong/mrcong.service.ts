@@ -27,21 +27,22 @@ export class MrcongService {
 
   async getCategories(): Promise<CategoryResponse[]> {
     const { data: rawData } = await this.httpService.axiosRef.get<string>(
-      this.configService.get<string>('HOST'),
+      `${this.configService.get<string>('HOST')}/sets`,
       {
         responseType: 'text',
       },
     );
     const { window } = new JSDOM(rawData);
     const categories = window.document.querySelectorAll(
-      'ul.sub-menu.menu-sub-content > li.menu-item > a',
+      // 'ul.sub-menu.menu-sub-content > li.menu-item > a',
+      'span.tag-counterz > a',
     );
     const categoriesLength = categories.length;
     const textCategories: CategoryResponse[] = [];
     for (let index = 0; index < categoriesLength; index++) {
       const item = categories[index];
       const splitString = item.getAttribute('href').split('/');
-      const category = splitString[splitString.length - 2];
+      const category = splitString[splitString.length - 1];
       textCategories.push({
         name: item.textContent,
         category,
@@ -97,7 +98,7 @@ export class MrcongService {
       links.push({
         title: item.textContent,
         href: item.getAttribute('href'),
-        coverImage: image.getAttribute('src'),
+        coverImage: image.getAttribute('data-src'),
         page: pageNumber,
         category: defaultCategory,
         tags: this._getTags(tagElements),
@@ -144,7 +145,7 @@ export class MrcongService {
 
     // Get all images from first page
     for (let index = 0; index < imagesFirstPageElements.length; index++) {
-      imageList.push(imagesFirstPageElements[index].getAttribute('src'));
+      imageList.push(imagesFirstPageElements[index].getAttribute('data-src'));
     }
 
     const promiseList = [];
@@ -169,7 +170,7 @@ export class MrcongService {
         'div.page-link + p > img',
       );
       for (let index = 0; index < imageElements.length; index++) {
-        imageList.push(imageElements[index].getAttribute('src'));
+        imageList.push(imageElements[index].getAttribute('data-src'));
       }
     }
     const invalidText = ['\n', ' '];
@@ -260,7 +261,7 @@ export class MrcongService {
 
     // Get all images from first page
     for (let index = 0; index < imagesFirstPageElements.length; index++) {
-      imageList.push(imagesFirstPageElements[index].getAttribute('src'));
+      imageList.push(imagesFirstPageElements[index].getAttribute('data-src'));
     }
 
     const totalPages = totalPageElements.length / 2;
@@ -345,7 +346,7 @@ export class MrcongService {
     const imageElements = document.querySelectorAll('div.page-link + p > img');
     const imageList = [];
     for (let index = 0; index < imageElements.length; index++) {
-      imageList.push(imageElements[index].getAttribute('src'));
+      imageList.push(imageElements[index].getAttribute('data-src'));
     }
     return imageList;
   }
@@ -543,7 +544,7 @@ export class MrcongService {
       links.push({
         title: item.textContent,
         href: item.getAttribute('href'),
-        coverImage: image.getAttribute('src'),
+        coverImage: image.getAttribute('data-src'),
         page: pageNumber,
         category: 'ALL',
         tags: this._getTags(tagElements),
@@ -658,7 +659,7 @@ export class MrcongService {
       links.push({
         title: item.textContent,
         href: item.getAttribute('href'),
-        coverImage: image.getAttribute('src'),
+        coverImage: image.getAttribute('data-src'),
         page: pageNumber,
         category: 'ALL',
         tags: this._getTags(tagElements),
@@ -708,7 +709,7 @@ export class MrcongService {
         },
         img: {
           alt: imgTag.getAttribute('title'),
-          src: imgTag.getAttribute('src'),
+          src: imgTag.getAttribute('data-src'),
           width: +imgTag.getAttribute('width'),
           height: +imgTag.getAttribute('height'),
           srcSet: '',
@@ -760,8 +761,8 @@ export class MrcongService {
         href: aElement.getAttribute('href'),
         title: aElement.getAttribute('title'),
         img: {
-          src: imgElement.getAttribute('src'),
-          srcSet: imgElement.getAttribute('srcset'),
+          src: imgElement.getAttribute('data-src'),
+          srcSet: imgElement.getAttribute('data-src'),
         },
       });
     }

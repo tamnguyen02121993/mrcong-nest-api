@@ -143,6 +143,7 @@ export class MrcongController {
     }
   }
 
+  @ApiOperation({ deprecated: true, description: DEPRECATED_MESSAGE })
   @Get('/trending')
   async getTrendingItems(@Res() res: Response) {
     try {

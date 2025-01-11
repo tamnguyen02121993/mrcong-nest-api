@@ -343,7 +343,7 @@ export class MrcongService {
 
     const { window } = new JSDOM(finalRawData);
     const document = window.document;
-    const imageElements = document.querySelectorAll('div.page-link + p > img');
+    const imageElements = document.querySelectorAll('div.entry > p > img');
     const imageList = [];
     for (let index = 0; index < imageElements.length; index++) {
       imageList.push(imageElements[index].getAttribute('data-src'));
